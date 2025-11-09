@@ -1,6 +1,6 @@
 import axios, { AxiosError } from 'axios';
 import qs from 'qs';
-import type { ShopifyOrderData, DropshipOrderResponse } from '../types/dropshipping';
+import type { ShopifyOrderData, DropshipOrderResponse, GetOrdersResponse, DropshipOrder } from '../types/dropshipping';
 import { OrderMapper } from './orderMapper';
 
 /**
@@ -110,6 +110,105 @@ export class DropshippingService {
         message: 'Failed to submit order to dropshipping API',
       };
     }
+  }
+
+  /**
+   * Get orders from the dropshipping API
+   */
+  async getOrders(): Promise<GetOrdersResponse> {
+    try {
+      const requestData = qs.stringify({
+        uname: this.username,
+        pass: this.password,
+      });
+
+      console.log('Fetching orders from dropshipping API...');
+
+      const response = await axios({
+        method: 'post',
+        url: 'https://www.quintessencejewelry.com/qjcapis/getOrders.xml',
+        headers: {
+          'Accept': 'application/xml',
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        data: requestData,
+        timeout: 30000,
+      });
+
+      console.log('Orders API response status:', response.status);
+
+      // Parse XML response to extract orders
+      // Note: The API returns XML, we'll parse it into our format
+      const orders = this.parseOrdersFromXML(response.data);
+
+      return {
+        success: true,
+        orders,
+        message: 'Orders fetched successfully',
+      };
+
+    } catch (error) {
+      console.error('Error fetching orders from dropshipping API:', error);
+
+      if (axios.isAxiosError(error)) {
+        const axiosError = error as AxiosError;
+        return {
+          success: false,
+          error: axiosError.message,
+          message: `API request failed: ${axiosError.response?.status || 'Network error'}`,
+        };
+      }
+
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Unknown error',
+        message: 'Failed to fetch orders from dropshipping API',
+      };
+    }
+  }
+
+  /**
+   * Parse orders from XML response
+   * This is a simplified parser - you may need to adjust based on actual API response
+   */
+  private parseOrdersFromXML(xmlData: any): DropshipOrder[] {
+    // For now, we'll return the raw data
+    // You may need to implement proper XML parsing based on the actual API response format
+    try {
+      // If the response is already JSON (some APIs return JSON with XML header)
+      if (typeof xmlData === 'object') {
+        return this.formatOrders(xmlData);
+      }
+
+      // Return empty array if parsing fails
+      return [];
+    } catch (error) {
+      console.error('Error parsing orders XML:', error);
+      return [];
+    }
+  }
+
+  /**
+   * Format orders from API response
+   */
+  private formatOrders(data: any): DropshipOrder[] {
+    // This is a placeholder formatter
+    // Adjust based on actual API response structure
+    if (Array.isArray(data)) {
+      return data.map(order => ({
+        orderId: order.id || order.order_id || 'N/A',
+        orderDate: order.created_at || order.date || new Date().toISOString(),
+        customerName: order.customer_name || 'N/A',
+        customerEmail: order.customer_email || order.email || 'N/A',
+        status: order.status || 'pending',
+        total: order.total || order.total_price || '0.00',
+        items: order.items || [],
+        shippingAddress: order.shipping_address || 'N/A',
+        trackingNumber: order.tracking_number,
+      }));
+    }
+
+    return [];
   }
 
   /**
