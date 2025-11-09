@@ -92,3 +92,27 @@ export interface ShopifyOrderData {
     email: string;
   };
 }
+
+export interface DropshipOrder {
+  orderId: string;
+  orderDate: string;
+  customerName: string;
+  customerEmail: string;
+  status: string;
+  total: string;
+  items: Array<{
+    sku: string;
+    name: string;
+    quantity: number;
+    price: string;
+  }>;
+  shippingAddress: string;
+  trackingNumber?: string;
+}
+
+export interface GetOrdersResponse {
+  success: boolean;
+  orders?: DropshipOrder[];
+  error?: string;
+  message?: string;
+}
