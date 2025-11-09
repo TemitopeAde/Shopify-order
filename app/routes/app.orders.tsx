@@ -53,7 +53,7 @@ export default function Orders() {
     }
   };
 
-  const getStatusBadge = (status: string) => {
+  const getStatusBadgeTone = (status: string) => {
     const normalizedStatus = status.toLowerCase();
 
     if (normalizedStatus.includes("shipped") || normalizedStatus === "completed") {
@@ -132,7 +132,7 @@ export default function Orders() {
                         </s-text>
                       </s-paragraph>
                     </div>
-                    <s-badge status={getStatusBadge(order.status)}>
+                    <s-badge tone={getStatusBadgeTone(order.status)}>
                       {order.status}
                     </s-badge>
                     <s-button
@@ -253,13 +253,13 @@ export default function Orders() {
       <s-section slot="aside" heading="Order Status">
         <s-unordered-list>
           <s-list-item>
-            <s-badge status="success">order shipped</s-badge> - Order has been shipped with tracking
+            <s-badge tone="success">order shipped</s-badge> - Order has been shipped with tracking
           </s-list-item>
           <s-list-item>
-            <s-badge status="warning">pending</s-badge> - Order is being processed
+            <s-badge tone="warning">pending</s-badge> - Order is being processed
           </s-list-item>
           <s-list-item>
-            <s-badge status="critical">cancelled</s-badge> - Order was cancelled
+            <s-badge tone="critical">cancelled</s-badge> - Order was cancelled
           </s-list-item>
         </s-unordered-list>
         <s-paragraph>
