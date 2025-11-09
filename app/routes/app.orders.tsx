@@ -53,6 +53,19 @@ export default function Orders() {
     }
   };
 
+  const getStatusBadge = (status: string) => {
+    const normalizedStatus = status.toLowerCase();
+
+    if (normalizedStatus.includes("shipped") || normalizedStatus === "completed") {
+      return "success";
+    } else if (normalizedStatus.includes("pending") || normalizedStatus.includes("processing")) {
+      return "warning";
+    } else if (normalizedStatus.includes("cancelled") || normalizedStatus.includes("failed")) {
+      return "critical";
+    }
+    return "info";
+  };
+
   return (
     <s-page heading="Orders">
       <s-button
@@ -119,15 +132,7 @@ export default function Orders() {
                         </s-text>
                       </s-paragraph>
                     </div>
-                    <s-badge
-                      status={
-                        order.status === "completed"
-                          ? "success"
-                          : order.status === "pending"
-                          ? "warning"
-                          : "info"
-                      }
-                    >
+                    <s-badge status={getStatusBadge(order.status)}>
                       {order.status}
                     </s-badge>
                     <s-button
@@ -156,8 +161,20 @@ export default function Orders() {
                     </div>
                     {order.trackingNumber && (
                       <div>
-                        <s-text variant="subdued">Tracking</s-text>
+                        <s-text variant="subdued">Tracking #</s-text>
                         <s-paragraph>{order.trackingNumber}</s-paragraph>
+                      </div>
+                    )}
+                    {order.shippedOn && (
+                      <div>
+                        <s-text variant="subdued">Shipped Date</s-text>
+                        <s-paragraph>{formatDate(order.shippedOn)}</s-paragraph>
+                      </div>
+                    )}
+                    {order.shippedVia && (
+                      <div>
+                        <s-text variant="subdued">Shipping Method</s-text>
+                        <s-paragraph>{order.shippedVia}</s-paragraph>
                       </div>
                     )}
                   </s-stack>
@@ -236,15 +253,18 @@ export default function Orders() {
       <s-section slot="aside" heading="Order Status">
         <s-unordered-list>
           <s-list-item>
+            <s-badge status="success">order shipped</s-badge> - Order has been shipped with tracking
+          </s-list-item>
+          <s-list-item>
             <s-badge status="warning">pending</s-badge> - Order is being processed
           </s-list-item>
           <s-list-item>
-            <s-badge status="success">completed</s-badge> - Order has been shipped
-          </s-list-item>
-          <s-list-item>
-            <s-badge status="info">other</s-badge> - Order status varies
+            <s-badge status="critical">cancelled</s-badge> - Order was cancelled
           </s-list-item>
         </s-unordered-list>
+        <s-paragraph>
+          Shipped orders display tracking number, shipped date, and shipping method.
+        </s-paragraph>
       </s-section>
     </s-page>
   );
