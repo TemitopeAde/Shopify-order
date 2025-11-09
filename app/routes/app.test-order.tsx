@@ -1,5 +1,4 @@
 import type { ActionFunctionArgs } from "react-router";
-import { json } from "react-router";
 import { authenticate } from "../shopify.server";
 import { dropshippingService } from "../lib/services/dropshippingService";
 import type { ShopifyOrderData } from "../lib/types/dropshipping";
@@ -86,23 +85,30 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     }
     console.log('========================================\n');
 
-    return json({
+    return new Response(JSON.stringify({
       success: result.success,
       message: result.message,
       orderId: result.orderId,
       error: result.error,
       testOrderData,
+    }), {
+      status: 200,
+      headers: {
+        "Content-Type": "application/json",
+      },
     });
   } catch (error) {
     console.error('\n❌ ERROR IN TEST ORDER:', error);
-    return json(
-      {
-        success: false,
-        error: error instanceof Error ? error.message : "Unknown error",
-        message: "Failed to process test order",
+    return new Response(JSON.stringify({
+      success: false,
+      error: error instanceof Error ? error.message : "Unknown error",
+      message: "Failed to process test order",
+    }), {
+      status: 500,
+      headers: {
+        "Content-Type": "application/json",
       },
-      { status: 500 }
-    );
+    });
   }
 };
 
