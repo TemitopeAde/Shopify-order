@@ -1,6 +1,7 @@
 # Learn more about configuring your app at https://shopify.dev/docs/apps/tools/cli/configuration
 
 # client_id = "55d7ee61d85abfab69f86f35a211d318"  # Old GOLDISSEYA account - commented out
+client_id = "7c6b3524f9b99522b"
 name = "orders-app"
 application_url = "https://example.com"
 embedded = true
