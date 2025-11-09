@@ -68,11 +68,14 @@ export class DropshippingService {
         requestData[`productBucket[${index}][qty]`] = product.qty;
       });
 
-      // Log the request for debugging (remove sensitive data in production)
-      console.log('Submitting order to dropshipping API:', {
-        customer_po: customerPO,
-        items: Object.keys(productBucket).length,
-      });
+      // Log the request for debugging (sanitize sensitive data)
+      const sanitizedRequest = { ...requestData, pass: '***HIDDEN***' };
+      console.log('\n=== ORDER PLACEMENT REQUEST ===');
+      console.log('API URL:', this.apiUrl);
+      console.log('Customer PO:', customerPO);
+      console.log('Items Count:', Object.keys(productBucket).length);
+      console.log('Full Request Data:', JSON.stringify(sanitizedRequest, null, 2));
+      console.log('================================\n');
 
       // Make the API request
       const response = await axios({
@@ -84,10 +87,17 @@ export class DropshippingService {
         },
         data: qs.stringify(requestData),
         timeout: 30000, // 30 second timeout
+        responseType: 'text', // Get raw response for logging
       });
 
-      // Parse the response
-      console.log('Dropshipping API response status:', response.status);
+      // Log the complete response
+      console.log('\n=== ORDER PLACEMENT RESPONSE ===');
+      console.log('Response Status:', response.status);
+      console.log('Response Status Text:', response.statusText);
+      console.log('Response Headers:', JSON.stringify(response.headers, null, 2));
+      console.log('Response Data Type:', typeof response.data);
+      console.log('Raw Response Data:', response.data);
+      console.log('=================================\n');
 
       return {
         success: response.status === 200,
