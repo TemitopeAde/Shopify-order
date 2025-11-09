@@ -1,5 +1,6 @@
 import axios, { AxiosError } from 'axios';
 import qs from 'qs';
+import { XMLParser } from 'fast-xml-parser';
 import type { ShopifyOrderData, DropshipOrderResponse, GetOrdersResponse, DropshipOrder } from '../types/dropshipping';
 import { OrderMapper } from './orderMapper';
 
@@ -133,12 +134,16 @@ export class DropshippingService {
         },
         data: requestData,
         timeout: 30000,
+        responseType: 'text', // Force text response to properly handle XML
       });
 
       console.log('Orders API response status:', response.status);
+      console.log('Orders API response data type:', typeof response.data);
+      console.log('Orders API response data (first 500 chars):',
+        typeof response.data === 'string' ? response.data.substring(0, 500) : JSON.stringify(response.data).substring(0, 500)
+      );
 
       // Parse XML response to extract orders
-      // Note: The API returns XML, we'll parse it into our format
       const orders = this.parseOrdersFromXML(response.data);
 
       return {
@@ -169,19 +174,48 @@ export class DropshippingService {
 
   /**
    * Parse orders from XML response
-   * This is a simplified parser - you may need to adjust based on actual API response
    */
   private parseOrdersFromXML(xmlData: any): DropshipOrder[] {
-    // For now, we'll return the raw data
-    // You may need to implement proper XML parsing based on the actual API response format
     try {
-      // If the response is already JSON (some APIs return JSON with XML header)
-      if (typeof xmlData === 'object') {
-        return this.formatOrders(xmlData);
+      // If data is not a string, log and return empty
+      if (typeof xmlData !== 'string') {
+        console.error('Expected XML string but got:', typeof xmlData);
+        return [];
       }
 
-      // Return empty array if parsing fails
-      return [];
+      // Configure XML parser
+      const parser = new XMLParser({
+        ignoreAttributes: false,
+        attributeNamePrefix: '',
+        parseAttributeValue: true,
+      });
+
+      // Parse XML
+      const parsed = parser.parse(xmlData);
+      console.log('Parsed XML structure:', JSON.stringify(parsed, null, 2).substring(0, 1000));
+
+      // Extract orders from the response
+      if (!parsed.response) {
+        console.error('No response element in XML');
+        return [];
+      }
+
+      // Get orders array (handle both single order and multiple orders)
+      let ordersArray = parsed.response.order;
+      if (!ordersArray) {
+        console.log('No orders found in response');
+        return [];
+      }
+
+      // Ensure ordersArray is an array (single order might not be in an array)
+      if (!Array.isArray(ordersArray)) {
+        ordersArray = [ordersArray];
+      }
+
+      console.log(`Found ${ordersArray.length} orders in XML`);
+
+      // Format orders
+      return this.formatOrders(ordersArray);
     } catch (error) {
       console.error('Error parsing orders XML:', error);
       return [];
@@ -191,24 +225,39 @@ export class DropshippingService {
   /**
    * Format orders from API response
    */
-  private formatOrders(data: any): DropshipOrder[] {
-    // This is a placeholder formatter
-    // Adjust based on actual API response structure
-    if (Array.isArray(data)) {
-      return data.map(order => ({
-        orderId: order.id || order.order_id || 'N/A',
-        orderDate: order.created_at || order.date || new Date().toISOString(),
-        customerName: order.customer_name || 'N/A',
-        customerEmail: order.customer_email || order.email || 'N/A',
-        status: order.status || 'pending',
-        total: order.total || order.total_price || '0.00',
-        items: order.items || [],
-        shippingAddress: order.shipping_address || 'N/A',
-        trackingNumber: order.tracking_number,
-      }));
-    }
+  private formatOrders(ordersArray: any[]): DropshipOrder[] {
+    return ordersArray.map(order => {
+      // Extract billing/shipping info
+      const billingShipping = order.order_billing_shipping || {};
 
-    return [];
+      // Build customer name from shipping info
+      const firstName = billingShipping.s_first_name || '';
+      const lastName = billingShipping.s_last_name || '';
+      const customerName = `${firstName} ${lastName}`.trim() || 'N/A';
+
+      // Build shipping address string
+      const shippingAddress = [
+        billingShipping.s_company,
+        firstName,
+        lastName,
+      ].filter(Boolean).join(', ') || 'N/A';
+
+      return {
+        orderId: order.order_number || 'N/A',
+        orderDate: order.order_date || new Date().toISOString(),
+        customerName,
+        customerEmail: billingShipping.s_email || 'N/A',
+        status: order.order_status?.toLowerCase() || 'pending',
+        total: order.grand_total?.toString() || '0.00',
+        items: [], // Products are in order_product.skubunch but structure not clear from XML
+        shippingAddress,
+        trackingNumber: order.awbn || undefined,
+        // Additional fields from the XML
+        shippedOn: order.shipped_on,
+        shippedVia: order.shipped_via,
+        paymentStatus: order.payment_status,
+      };
+    });
   }
 
   /**
