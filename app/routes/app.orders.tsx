@@ -69,7 +69,7 @@ export default function Orders() {
             padding="base"
             borderWidth="base"
             borderRadius="base"
-            background="critical"
+
           >
             <s-paragraph>
               <strong>Error:</strong> {data.message || data.error}
@@ -106,27 +106,21 @@ export default function Orders() {
                 padding="base"
                 borderWidth="base"
                 borderRadius="base"
-                background="surface"
+
               >
                 <s-stack direction="block" gap="base">
                   {/* Order Header */}
                   <s-stack direction="inline" gap="base" alignItems="center">
                     <div style={{ flex: 1 }}>
-                      <s-heading level={3}>Order #{order.orderId}</s-heading>
+                      <s-heading>Order #{order.orderId}</s-heading>
                       <s-paragraph>
-                        <s-text variant="subdued">
+                        <s-text>
                           {formatDate(order.orderDate)}
                         </s-text>
                       </s-paragraph>
                     </div>
                     <s-badge
-                      status={
-                        order.status === "completed"
-                          ? "success"
-                          : order.status === "pending"
-                          ? "warning"
-                          : "info"
-                      }
+                      tone="success"
                     >
                       {order.status}
                     </s-badge>
@@ -143,20 +137,20 @@ export default function Orders() {
                   {/* Order Summary */}
                   <s-stack direction="inline" gap="large">
                     <div>
-                      <s-text variant="subdued">Customer</s-text>
+                      <s-text type="strong" variant="subdued">Customer</s-text>
                       <s-paragraph>{order.customerName}</s-paragraph>
                     </div>
                     <div>
-                      <s-text variant="subdued">Email</s-text>
+                      <s-text type="strong" variant="subdued">Email</s-text>
                       <s-paragraph>{order.customerEmail}</s-paragraph>
                     </div>
                     <div>
-                      <s-text variant="subdued">Total</s-text>
+                      <s-text type="strong" variant="subdued">Total</s-text>
                       <s-paragraph>${order.total}</s-paragraph>
                     </div>
                     {order.trackingNumber && (
                       <div>
-                        <s-text variant="subdued">Tracking</s-text>
+                        <s-text type="strong" color="subdued" >Tracking</s-text>
                         <s-paragraph>{order.trackingNumber}</s-paragraph>
                       </div>
                     )}
@@ -173,14 +167,14 @@ export default function Orders() {
                       <s-stack direction="block" gap="base">
                         {/* Shipping Address */}
                         <div>
-                          <s-heading level={4}>Shipping Address</s-heading>
+                          <s-heading>Shipping Address</s-heading>
                           <s-paragraph>{order.shippingAddress}</s-paragraph>
                         </div>
 
                         {/* Order Items */}
                         {order.items && order.items.length > 0 && (
                           <div>
-                            <s-heading level={4}>Items</s-heading>
+                            <s-heading>Items</s-heading>
                             <s-stack direction="block" gap="small">
                               {order.items.map((item, index) => (
                                 <s-box
@@ -188,14 +182,14 @@ export default function Orders() {
                                   padding="small"
                                   borderWidth="base"
                                   borderRadius="base"
-                                  background="surface"
+
                                 >
                                   <s-stack direction="inline" gap="base">
                                     <div style={{ flex: 1 }}>
                                       <s-paragraph>
                                         <strong>{item.name}</strong>
                                       </s-paragraph>
-                                      <s-text variant="subdued">
+                                      <s-text>
                                         SKU: {item.sku}
                                       </s-text>
                                     </div>
@@ -233,19 +227,19 @@ export default function Orders() {
         </s-paragraph>
       </s-section>
 
-      <s-section slot="aside" heading="Order Status">
+      {/* <s-section slot="aside" heading="Order Status">
         <s-unordered-list>
           <s-list-item>
-            <s-badge status="warning">pending</s-badge> - Order is being processed
+            <s-badge>pending</s-badge> - Order is being processed
           </s-list-item>
           <s-list-item>
-            <s-badge status="success">completed</s-badge> - Order has been shipped
+            <s-badge >completed</s-badge> - Order has been shipped
           </s-list-item>
           <s-list-item>
-            <s-badge status="info">other</s-badge> - Order status varies
+            <s-badge>other</s-badge> - Order status varies
           </s-list-item>
         </s-unordered-list>
-      </s-section>
+      </s-section> */}
     </s-page>
   );
 }

@@ -27,6 +27,8 @@ export class DropshippingService {
    */
   async submitOrder(orderData: ShopifyOrderData): Promise<DropshipOrderResponse> {
     try {
+      console.log(orderData);
+
       // Validate required data
       if (!orderData.shipping_address) {
         throw new Error('Shipping address is required');
@@ -137,11 +139,7 @@ export class DropshippingService {
         responseType: 'text', // Force text response to properly handle XML
       });
 
-      console.log('Orders API response status:', response.status);
-      console.log('Orders API response data type:', typeof response.data);
-      console.log('Orders API response data (first 500 chars):',
-        typeof response.data === 'string' ? response.data.substring(0, 500) : JSON.stringify(response.data).substring(0, 500)
-      );
+
 
       // Parse XML response to extract orders
       const orders = this.parseOrdersFromXML(response.data);
