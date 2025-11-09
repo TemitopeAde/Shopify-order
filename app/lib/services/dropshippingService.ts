@@ -66,11 +66,17 @@ export class DropshippingService {
         requestData[`productBucket[${index}][qty]`] = product.qty;
       });
 
-      // Log the request for debugging (remove sensitive data in production)
-      console.log('Submitting order to dropshipping API:', {
-        customer_po: customerPO,
-        items: Object.keys(productBucket).length,
-      });
+      // Log the full request for debugging
+      console.log('\n========== DROPSHIP ORDER SUBMISSION ==========');
+      console.log('API URL:', this.apiUrl);
+      console.log('Customer PO:', customerPO);
+      console.log('Customer Email:', customerEmail);
+      console.log('Logistic Method:', logistic);
+      console.log('Product Bucket:', JSON.stringify(productBucket, null, 2));
+      console.log('Shipping Address:', JSON.stringify(shippingAddress, null, 2));
+      console.log('Billing Address:', JSON.stringify(billingAddress, null, 2));
+      console.log('Full Request Data:', JSON.stringify(requestData, null, 2));
+      console.log('===============================================\n');
 
       // Make the API request
       const response = await axios({
@@ -82,10 +88,20 @@ export class DropshippingService {
         },
         data: qs.stringify(requestData),
         timeout: 30000, // 30 second timeout
+        responseType: 'text', // Force text response to properly handle XML
       });
 
       // Parse the response
-      console.log('Dropshipping API response status:', response.status);
+      console.log('\n========== DROPSHIP API RESPONSE ==========');
+      console.log('Response Status:', response.status);
+      console.log('Response Headers:', JSON.stringify(response.headers, null, 2));
+      console.log('Response Data Type:', typeof response.data);
+      console.log('Response Data (first 1000 chars):',
+        typeof response.data === 'string'
+          ? response.data.substring(0, 1000)
+          : JSON.stringify(response.data).substring(0, 1000)
+      );
+      console.log('===========================================\n');
 
       return {
         success: response.status === 200,
@@ -94,16 +110,28 @@ export class DropshippingService {
       };
 
     } catch (error) {
+      console.error('\n========== DROPSHIP API ERROR ==========');
       console.error('Error submitting order to dropshipping API:', error);
 
       if (axios.isAxiosError(error)) {
         const axiosError = error as AxiosError;
+        console.error('Axios Error Details:');
+        console.error('  Status:', axiosError.response?.status);
+        console.error('  Status Text:', axiosError.response?.statusText);
+        console.error('  Response Data:', axiosError.response?.data);
+        console.error('  Request URL:', axiosError.config?.url);
+        console.error('  Request Method:', axiosError.config?.method);
+        console.error('=========================================\n');
+
         return {
           success: false,
           error: axiosError.message,
           message: `API request failed: ${axiosError.response?.status || 'Network error'}`,
         };
       }
+
+      console.error('General Error:', error instanceof Error ? error.message : 'Unknown error');
+      console.error('=========================================\n');
 
       return {
         success: false,

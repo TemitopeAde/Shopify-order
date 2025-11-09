@@ -18,6 +18,8 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 export const action = async ({ request }: ActionFunctionArgs) => {
   await authenticate.admin(request);
 
+  console.log('\n========== TEST ORDER SUBMISSION STARTED ==========');
+
   const formData = await request.formData();
   const email = formData.get("email") as string;
   const firstName = formData.get("firstName") as string;
@@ -29,6 +31,12 @@ export const action = async ({ request }: ActionFunctionArgs) => {
   const country = formData.get("country") as string;
   const phone = formData.get("phone") as string;
   const sku = formData.get("sku") as string;
+
+  console.log('Form Data Received:');
+  console.log('  Email:', email);
+  console.log('  Name:', firstName, lastName);
+  console.log('  SKU:', sku);
+  console.log('===================================================\n');
 
   // Create a test order
   const testOrder: ShopifyOrderData = {
@@ -71,6 +79,14 @@ export const action = async ({ request }: ActionFunctionArgs) => {
 
   try {
     const result = await dropshippingService.submitOrder(testOrder);
+
+    console.log('\n========== TEST ORDER RESULT ==========');
+    console.log('Success:', result.success);
+    console.log('Message:', result.message);
+    console.log('Order ID:', result.orderId);
+    console.log('Error:', result.error || 'None');
+    console.log('=======================================\n');
+
     return {
       success: result.success,
       message: result.message,
@@ -78,6 +94,10 @@ export const action = async ({ request }: ActionFunctionArgs) => {
       orderId: result.orderId,
     };
   } catch (error) {
+    console.error('\n========== TEST ORDER EXCEPTION ==========');
+    console.error('Exception caught:', error);
+    console.error('==========================================\n');
+
     return {
       success: false,
       message: "Failed to submit test order",
