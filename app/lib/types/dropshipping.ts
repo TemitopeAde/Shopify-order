@@ -108,6 +108,9 @@ export interface DropshipOrder {
   }>;
   shippingAddress: string;
   trackingNumber?: string;
+  shippedOn?: string;
+  shippedVia?: string;
+  paymentStatus?: string;
 }
 
 export interface GetOrdersResponse {
