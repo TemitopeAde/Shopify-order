@@ -1,4 +1,7 @@
+import { useEffect } from "react";
 import type { ActionFunctionArgs } from "react-router";
+import { useFetcher } from "react-router";
+import { useAppBridge } from "@shopify/app-bridge-react";
 import { authenticate } from "../shopify.server";
 import { dropshippingService } from "../lib/services/dropshippingService";
 import type { ShopifyOrderData } from "../lib/types/dropshipping";
@@ -106,6 +109,29 @@ export const action = async ({ request }: ActionFunctionArgs) => {
 };
 
 export default function TestOrder() {
+  const fetcher = useFetcher<typeof action>();
+  const shopify = useAppBridge();
+
+  const isLoading =
+    ["loading", "submitting"].includes(fetcher.state) &&
+    fetcher.formMethod === "POST";
+
+  useEffect(() => {
+    if (fetcher.data) {
+      if (fetcher.data.success) {
+        shopify.toast.show("Test order placed successfully! Check console logs.");
+      } else {
+        shopify.toast.show("Test order failed. Check console for details.", {
+          isError: true,
+        });
+      }
+    }
+  }, [fetcher.data, shopify]);
+
+  const handlePlaceOrder = () => {
+    fetcher.submit({}, { method: "POST" });
+  };
+
   return (
     <s-page heading="Test Order Placement">
       <s-section heading="Manual Order Test">
@@ -136,11 +162,52 @@ export default function TestOrder() {
             </s-stack>
           </s-box>
 
-          <s-form method="post">
-            <s-button submit variant="primary">
-              Place Test Order
-            </s-button>
-          </s-form>
+          <s-button
+            onClick={handlePlaceOrder}
+            variant="primary"
+            {...(isLoading ? { loading: true } : {})}
+          >
+            Place Test Order
+          </s-button>
+
+          {fetcher.data && (
+            <s-box
+              padding="base"
+              borderWidth="base"
+              borderRadius="base"
+              background={fetcher.data.success ? "success-subdued" : "critical-subdued"}
+            >
+              <s-stack direction="block" gap="base">
+                <s-heading>Response:</s-heading>
+                <s-text>
+                  <strong>Status:</strong> {fetcher.data.success ? "✅ Success" : "❌ Failed"}
+                </s-text>
+                <s-text>
+                  <strong>Message:</strong> {fetcher.data.message}
+                </s-text>
+                {fetcher.data.orderId && (
+                  <s-text>
+                    <strong>Order ID:</strong> {fetcher.data.orderId}
+                  </s-text>
+                )}
+                {fetcher.data.error && (
+                  <s-text>
+                    <strong>Error:</strong> {fetcher.data.error}
+                  </s-text>
+                )}
+                <s-box
+                  padding="base"
+                  borderWidth="base"
+                  borderRadius="base"
+                  background="subdued"
+                >
+                  <pre style={{ margin: 0, fontSize: "12px", overflow: "auto" }}>
+                    <code>{JSON.stringify(fetcher.data, null, 2)}</code>
+                  </pre>
+                </s-box>
+              </s-stack>
+            </s-box>
+          )}
 
           <s-box
             padding="base"
