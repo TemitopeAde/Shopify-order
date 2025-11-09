@@ -137,7 +137,7 @@ export default function TestOrder() {
           </s-box>
 
           <s-form method="post">
-            <s-button submit variant="primary">
+            <s-button type="submit" variant="primary">
               Place Test Order
             </s-button>
           </s-form>
