@@ -29,6 +29,15 @@ export class DropshippingService {
     try {
       console.log(orderData);
 
+      // Validate API credentials are configured
+      if (!this.username || !this.password) {
+        return {
+          success: false,
+          error: 'API credentials not configured',
+          message: 'Dropshipping API credentials are missing. Please set DROPSHIP_API_USERNAME and DROPSHIP_API_PASSWORD environment variables.',
+        };
+      }
+
       // Validate required data
       if (!orderData.shipping_address) {
         throw new Error('Shipping address is required');
@@ -130,6 +139,15 @@ export class DropshippingService {
    */
   async getOrders(): Promise<GetOrdersResponse> {
     try {
+      // Validate API credentials are configured
+      if (!this.username || !this.password) {
+        return {
+          success: false,
+          error: 'API credentials not configured',
+          message: 'Dropshipping API credentials are missing. Please set DROPSHIP_API_USERNAME and DROPSHIP_API_PASSWORD environment variables.',
+        };
+      }
+
       const requestData = qs.stringify({
         uname: this.username,
         pass: this.password,
@@ -273,6 +291,12 @@ export class DropshippingService {
    */
   async testConnection(): Promise<boolean> {
     try {
+      // Check if credentials are configured
+      if (!this.username || !this.password) {
+        console.warn('Cannot test connection: API credentials not configured');
+        return false;
+      }
+
       const testData = qs.stringify({
         uname: this.username,
         pass: this.password,
