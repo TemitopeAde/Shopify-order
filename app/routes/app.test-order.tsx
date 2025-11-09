@@ -1,5 +1,4 @@
 import type { ActionFunctionArgs } from "react-router";
-import { json } from "react-router";
 import { authenticate } from "../shopify.server";
 import { dropshippingService } from "../lib/services/dropshippingService";
 import type { ShopifyOrderData } from "../lib/types/dropshipping";
@@ -86,7 +85,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     }
     console.log('========================================\n');
 
-    return json({
+    return Response.json({
       success: result.success,
       message: result.message,
       orderId: result.orderId,
@@ -95,7 +94,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     });
   } catch (error) {
     console.error('\n❌ ERROR IN TEST ORDER:', error);
-    return json(
+    return Response.json(
       {
         success: false,
         error: error instanceof Error ? error.message : "Unknown error",
